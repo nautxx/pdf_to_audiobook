@@ -1,4 +1,5 @@
 import PyPDF2
+import fitz
 import pyttsx3
 import json
 
@@ -26,7 +27,6 @@ def save_pdf_book_to_json(file):
     pypdf2_file = PyPDF2.PdfFileReader(file_path)
 
     number_of_pages = pypdf2_file.numPages
-    # all_pages = []
     all_pages = {}
 
     for page in range(number_of_pages):
