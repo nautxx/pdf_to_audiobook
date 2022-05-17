@@ -1,14 +1,16 @@
 import PyPDF2
-import fitz
 import pyttsx3
 import json
+import re
+import os
 
 
 FILE_NAME = "Cracking_the_Coding_Interview_6th_Edition"
-# PAGE = input("Enter Page No.: ")
+SAVE_DIRECTORY = "Saved/"
+PAGE_NO = 1
 
 
-def get_text_from_pdf(file, page=1):
+def get_text_from_pdf(file=FILE_NAME, page=1):
     """Converts 1 pdf page to text."""
     # open file and convert to text
     file_path = open(file, 'rb')
@@ -21,8 +23,8 @@ def get_text_from_pdf(file, page=1):
     return pdf_to_text_converted
 
 
-def save_pdf_book_to_json(file):
-    """Saves entire book to json for faster access later at a cost of storage."""
+def save_pdf_book_to_json(file=FILE_NAME):
+    """Saves entire book to json for faster access later at a cost of storage. Deletes original .pdf after."""
     file_path = open(file + ".pdf", 'rb')
     pypdf2_file = PyPDF2.PdfFileReader(file_path)
 
@@ -30,10 +32,12 @@ def save_pdf_book_to_json(file):
     all_pages = {}
 
     for page in range(number_of_pages):
-        all_pages.update({pypdf2_file.getPage(page).extractText(): page})
+        all_pages.update({page: pypdf2_file.getPage(page).extractText()})
 
-    with open(FILE_NAME, "w") as json_file:
+    with open(SAVE_DIRECTORY + file + ".json", "w") as json_file:
         json.dump(all_pages, json_file)
+
+    os.remove(file + ".pdf")
 
 
 def speak_pdf(text):
@@ -45,20 +49,21 @@ def speak_pdf(text):
     pyttsx3_file.runAndWait()
 
 
-def pdf_to_audiobook():
-    text = get_text_from_pdf(FILE_NAME, PAGE)
+def pdf_to_speech(file=FILE_NAME, page=PAGE_NO):
+    text = get_text_from_pdf(FILE_NAME, page)
     speak_pdf(text)
 
 
 def book_pdf_to_audiobook(file=FILE_NAME, start_page=1):
     """Reads outloud selected page from book."""
-    with open(file + ".json", "r") as json_file:
-        text = json.load(json_file)
-        print(text)
-        speak_pdf(text[start_page])
+    with open(SAVE_DIRECTORY + file + ".json", "r") as json_file:
+        pages = json.load(json_file)
+        page = pages[str(start_page)]
+        page_parsed = re.sub("\n", "", page)
+        print(f"Reading Page {start_page} of {len(pages)}:\n\n{page_parsed}\n")
+        speak_pdf(page_parsed)
 
 
-# pdf_to_audiobook()
-# save_pdf_page()
-# save_pdf_book_to_json(FILE_NAME)
-book_pdf_to_audiobook(start_page=25)
+# pdf_to_speech()
+save_pdf_book_to_json(FILE_NAME)
+# book_pdf_to_audiobook(start_page=23)
