@@ -1,4 +1,3 @@
-from distutils.util import convert_path
 import io
 import os
 import re
@@ -7,16 +6,14 @@ import json
 from google.cloud import texttospeech   # pip install --upgrade google-cloud-texttospeech
 from google.cloud import vision     #pip install --upgrade google-cloud-vision
 
-from pdf2image import convert_from_path # pip install pdf2image
-import tempfile
-import requests # pip install requests
+# from pdf2image import convert_from_path # pip install pdf2image
 # import PyPDF2   # pip install PyPDF2
-
 
 
 FILE_NAME = "Cracking_the_Coding_Interview_6th_Edition"
 SAVE_DIRECTORY = "Saved/"
 PAGE_NO = 1
+
 
 # Instantiates API clients
 speech_client = texttospeech.TextToSpeechClient()
@@ -43,37 +40,18 @@ def generate_mp3_from_text(text):
     #TODO Delete temp_dir and files after success
 
 
-def get_text_from_pdf():
-    # The name of the image file to annotate
-    file_name = os.path.abspath('temp_dir/png_blob0.png')
+# def convert_pdf_to_png():
+#     with tempfile.TemporaryDirectory() as path:
+#         images_from_path = convert_from_path(
+#             'example.pdf', dpi=200, output_folder=path, first_page=None,
+#             last_page=None
+#         )
 
-    # Loads the image into memory
-    with io.open(file_name, 'rb') as image_file:
-        content = image_file.read()
+#         if not os.path.isfile('temp_dir'):
+#             os.mkdir('temp_dir')
 
-    image = vision.Image(content=content)
-
-    # Performs label detection on the image file
-    response = vision_client.label_detection(image=image)
-    labels = response.label_annotations
-
-    print('Labels:')
-    for label in labels:
-        print(label.description)
-
-
-def convert_pdf_to_png():
-    with tempfile.TemporaryDirectory() as path:
-        images_from_path = convert_from_path(
-            'example.pdf', dpi=200, output_folder=path, first_page=None,
-            last_page=None
-        )
-
-        if not os.path.isfile('temp_dir'):
-            os.mkdir('temp_dir')
-
-        for i, image in enumerate(images_from_path):
-            image.save(f'temp_dir/png_blob{i}.png', 'PNG')
+#         for i, image in enumerate(images_from_path):
+#             image.save(f'temp_dir/png_blob{i}.png', 'PNG')
 
 
 # def get_text_from_pdf(file=FILE_NAME, page=1):
@@ -145,4 +123,77 @@ def convert_pdf_to_png():
 # book_pdf_to_audiobook(start_page=23)
 
 # get_text_from_pdf()
-convert_pdf_to_png()
+# convert_pdf_to_png()
+
+def detect_document(path):
+    """Detects document features in an image."""
+
+    with io.open(path, 'rb') as image_file:
+        content = image_file.read()
+
+    image = vision.Image(content=content)
+
+    response = vision_client.document_text_detection(image=image)
+
+    # for page in response.full_text_annotation.pages:
+    #     for block in page.blocks:
+    #         print('\nBlock confidence: {}\n'.format(block.confidence))
+
+    #         for paragraph in block.paragraphs:
+    #             print('Paragraph confidence: {}'.format(
+    #                 paragraph.confidence))
+
+    #             for word in paragraph.words:
+    #                 word_text = ''.join([
+    #                     symbol.text for symbol in word.symbols
+    #                 ])
+    #                 print('Word text: {} (confidence: {})'.format(
+    #                     word_text, word.confidence))
+
+    #                 for symbol in word.symbols:
+    #                     print('\tSymbol: {} (confidence: {})'.format(
+    #                         symbol.text, symbol.confidence))
+
+    if response.error.message:
+        raise Exception(
+            '{}\nFor more info on error messages, check: '
+            'https://cloud.google.com/apis/design/errors'.format(
+                response.error.message))
+
+    return response
+
+
+def detect_text(path):
+    """Detects text in the file."""
+
+    with io.open(path, 'rb') as image_file:
+        content = image_file.read()
+
+    image = vision.Image(content=content)
+
+    response = vision_client.text_detection(image=image)
+
+    dictionary = json.loads(response.text)
+    print(dictionary)
+    
+    # texts = response.text_annotations
+    # print('Texts:')
+
+    # for text in texts:
+    #     print('\n"{}"'.format(text.description))
+
+    #     vertices = (['({},{})'.format(vertex.x, vertex.y)
+    #                 for vertex in text.bounding_poly.vertices])
+
+    #     print('bounds: {}'.format(','.join(vertices)))
+
+    # if response.error.message:
+    #     raise Exception(
+    #         '{}\nFor more info on error messages, check: '
+    #         'https://cloud.google.com/apis/design/errors'.format(
+    #             response.error.message))
+
+    return response
+
+response = detect_document("temp_dir/png_blob0.png")
+
