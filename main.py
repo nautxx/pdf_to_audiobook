@@ -1,14 +1,17 @@
+from distutils.util import convert_path
 import io
 import os
 import re
 import json
 
 from google.cloud import texttospeech   # pip install --upgrade google-cloud-texttospeech
+from google.cloud import vision     #pip install --upgrade google-cloud-vision
 
-
+from pdf2image import convert_from_path # pip install pdf2image
+import tempfile
 import requests # pip install requests
 # import PyPDF2   # pip install PyPDF2
-# import pyttsx3
+
 
 
 FILE_NAME = "Cracking_the_Coding_Interview_6th_Edition"
@@ -17,10 +20,11 @@ PAGE_NO = 1
 
 # Instantiates API clients
 speech_client = texttospeech.TextToSpeechClient()
-
+vision_client = vision.ImageAnnotatorClient()
 
 
 def generate_mp3_from_text(text):
+    
     synthesis_input = texttospeech.SynthesisInput(text="Hello, World!")
     voice = texttospeech.VoiceSelectionParams(
         language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
@@ -35,6 +39,41 @@ def generate_mp3_from_text(text):
     with open("output.mp3", "wb") as out:
         out.write(response.audio_content)
         print('Audio content written to file "output.mp3"')
+
+    #TODO Delete temp_dir and files after success
+
+
+def get_text_from_pdf():
+    # The name of the image file to annotate
+    file_name = os.path.abspath('temp_dir/png_blob0.png')
+
+    # Loads the image into memory
+    with io.open(file_name, 'rb') as image_file:
+        content = image_file.read()
+
+    image = vision.Image(content=content)
+
+    # Performs label detection on the image file
+    response = vision_client.label_detection(image=image)
+    labels = response.label_annotations
+
+    print('Labels:')
+    for label in labels:
+        print(label.description)
+
+
+def convert_pdf_to_png():
+    with tempfile.TemporaryDirectory() as path:
+        images_from_path = convert_from_path(
+            'example.pdf', dpi=200, output_folder=path, first_page=None,
+            last_page=None
+        )
+
+        if not os.path.isfile('temp_dir'):
+            os.mkdir('temp_dir')
+
+        for i, image in enumerate(images_from_path):
+            image.save(f'temp_dir/png_blob{i}.png', 'PNG')
 
 
 # def get_text_from_pdf(file=FILE_NAME, page=1):
@@ -76,14 +115,6 @@ def generate_mp3_from_text(text):
 #     pyttsx3_file.runAndWait()
 
 
-# # def save_voice_file(text, page):
-# #     """Saves voice file to .mp3"""
-# #     pyttsx3_file = pyttsx3.init()
-
-# #     pyttsx3_file.save_to_file(text, f"{FILE_NAME}_{page}.mp3")
-# #     pyttsx3_file.runAndWait()
-
-
 # def pdf_to_speech(file=FILE_NAME, page=PAGE_NO):
 #     text = get_text_from_pdf(FILE_NAME, page)
 #     txt_to_speech(text)
@@ -113,4 +144,5 @@ def generate_mp3_from_text(text):
 # # save_pdf_book_to_json(FILE_NAME)
 # book_pdf_to_audiobook(start_page=23)
 
-get_text_from_pdf()
+# get_text_from_pdf()
+convert_pdf_to_png()
