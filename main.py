@@ -22,11 +22,14 @@ def convert_pdf_to_png(file):
             last_page=None
         )
 
-    if not os.path.isfile('_temp'):
+    if not os.path.exists('_temp'):
         os.mkdir('_temp')
 
+    print("Converting PDF to PNG...")
     for i, image in enumerate(images_from_path):
         image.save(f'_temp/{png_id}{i}.png', 'PNG')
+    print("Finished converting PDF to PNGs for {}".format(file))
+    # os.remove(file)
 
 
 # def book_pdf_to_audiobook(file=FILE_NAME, start_page=1):
@@ -117,6 +120,10 @@ def detect_text(path):
                 response.error.message))
 
     return text_unfiltered
+
+
+def extract():
+    pass
 
 
 def generate_mp3_from_text(text):
