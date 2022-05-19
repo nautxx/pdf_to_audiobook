@@ -1,4 +1,5 @@
 *.mp3
+*.code-workspace
 *.pdf
 *.txt
 env/
