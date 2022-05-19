@@ -1,6 +1,6 @@
-.mp3
-.pdf
-.txt
+*.mp3
+*.pdf
+*.txt
 env/
 .DS_Store
 service-account-file.json
