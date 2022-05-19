@@ -15,8 +15,6 @@ from pydub import AudioSegment          # pip install pydub
 speech_client = texttospeech.TextToSpeechClient()
 vision_client = vision.ImageAnnotatorClient()
 
-
-# FILE_NAME = "Cracking_the_Coding_Interview_6th_Edition_Chapter_2.pdf"
 FILE_NAME = None
 
 
@@ -170,18 +168,19 @@ def merge_mp3_files():
     mp3_list = [mp3 for mp3 in os.listdir('_temp_mp3')]
     mp3_list_sorted = sorted(mp3_list)
 
+    mp3_file_name = FILE_NAME.replace(".pdf", "")
+
     print("Started merging mp3 files.")
     for mp3 in mp3_list_sorted:
         mp3_data = AudioSegment.from_file(f"_temp_mp3/{mp3}", format="mp3")
         if merged_mp3:
             merged_mp3 += mp3_data
-            print(f"{mp3} added.")
+            print(f"{mp3} added to {mp3_file_name}.")
         else:
             merged_mp3 = mp3_data
-            print(f"{mp3} added.")
+            print(f"{mp3} added to {mp3_file_name}.")
 
     # save the merged mp3 file
-    mp3_file_name = FILE_NAME.replace(".pdf", "")
     merged_mp3.export(f"{mp3_file_name}.mp3", format="mp3")
     print("Finished merging mp3 files.")
 
