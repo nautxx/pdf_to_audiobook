@@ -24,7 +24,7 @@ def convert_pdf_to_png(file):
     global FILE_NAME
     FILE_NAME = file
 
-    png_id = file.replace(".pdf", "")[:4]  # use the first 4 chars as file_id
+    png_id = file.replace(".pdf", "")[:4].lower()  # use the first 4 chars as file_id
     
     with tempfile.TemporaryDirectory() as path:
         images_from_path = convert_from_path(
@@ -118,15 +118,18 @@ def extract_page_text():
     file_names = []
 
     file_names = [file_name for file_name in os.listdir('_temp')]
-        # file_names.append(file_name)
 
     file_names_sorted = sorted(file_names)
     file_names_sorted = file_names_sorted
     
+    print("Extracting text from PNGs...")
     text_data_list = [] # merge text data into one file.
     for file_name in file_names_sorted:
-        text_data_list.append(detect_text(f"_temp/{file_name}"))
-
+        path = f"_temp/{file_name}"
+        text_data_list.append(detect_text(path))
+        print(f"Text extracted from {path}")
+        
+    print("Text extracted and compiled.")
     return text_data_list
 
 
@@ -134,10 +137,10 @@ def generate_mp3_from_text(text, batch_id):
     
     synthesis_input = texttospeech.SynthesisInput(text=text)
     voice = texttospeech.VoiceSelectionParams(
-        language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
+        language_code="en-GB", name='en-GB-Standard-B', ssml_gender=texttospeech.SsmlVoiceGender.MALE
     )
     audio_config = texttospeech.AudioConfig(
-        audio_encoding=texttospeech.AudioEncoding.MP3, speaking_rate=1.5
+        audio_encoding=texttospeech.AudioEncoding.MP3, speaking_rate=1
     )
     response = speech_client.synthesize_speech(
         input=synthesis_input, voice=voice, audio_config=audio_config
@@ -146,7 +149,7 @@ def generate_mp3_from_text(text, batch_id):
     if not os.path.exists('_temp_mp3'):
         os.mkdir('_temp_mp3')
 
-    mp3_file_id = FILE_NAME[:4]  # use the first 4 chars as file_id
+    mp3_file_id = FILE_NAME[:4].lower()  # use the first 4 chars as file_id
     mp3_file_path = "_temp_mp3/" + mp3_file_id
     with open(f"{mp3_file_path}_{batch_id}.mp3", "wb") as out:
         out.write(response.audio_content)
@@ -175,20 +178,20 @@ def merge_mp3_files():
         mp3_data = AudioSegment.from_file(f"_temp_mp3/{mp3}", format="mp3")
         if merged_mp3:
             merged_mp3 += mp3_data
-            print(f'{mp3} added to "{mp3_file_name}"')
+            print(f'{mp3} added to "{mp3_file_name}.mp3"')
         else:
             merged_mp3 = mp3_data
-            print(f'{mp3} added to "{mp3_file_name}"')
+            print(f'{mp3} added to "{mp3_file_name}.mp3"')
 
     # save the merged mp3 file
     merged_mp3.export(f"{mp3_file_name}.mp3", format="mp3")
     print("Finished merging mp3 files.")
 
     # delete temporary files
-    print("Deleting temp files...")
+    print("Deleting temp files and folders...")
     shutil.rmtree('_temp')
     shutil.rmtree('_temp_mp3')
-    print("Temp files deleted.")
+    print("Temp files and folders deleted.")
 
 
 def pdf_to_audiobook(file):
