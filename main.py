@@ -175,10 +175,10 @@ def merge_mp3_files():
         mp3_data = AudioSegment.from_file(f"_temp_mp3/{mp3}", format="mp3")
         if merged_mp3:
             merged_mp3 += mp3_data
-            print(f"{mp3} added to {mp3_file_name}.")
+            print(f'{mp3} added to "{mp3_file_name}"')
         else:
             merged_mp3 = mp3_data
-            print(f"{mp3} added to {mp3_file_name}.")
+            print(f'{mp3} added to "{mp3_file_name}"')
 
     # save the merged mp3 file
     merged_mp3.export(f"{mp3_file_name}.mp3", format="mp3")
