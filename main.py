@@ -195,6 +195,8 @@ def merge_mp3_files():
 
 
 def pdf_to_audiobook(file):
+    """Main script."""
+
     convert_pdf_to_png(file)
     text = extract_page_text()
     generate_mp3_files(text)
